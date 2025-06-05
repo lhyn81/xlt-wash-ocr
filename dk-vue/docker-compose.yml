@@ -1,0 +1,14 @@
+# version: "3.8"
+
+services:
+
+# vue的开发docker
+  vue3dev:  # 这个名称就是该容器在网络中的主机名,容器间通过整个名称访问, 不用ip
+    image: registry.cn-hangzhou.aliyuncs.com/lhyn/mix:vue3dev-bun
+    container_name: vue3dev_washocr  # 这个名称就是该容器在网络中的主机名(优先级更高),容器间通过整个名称访问, 不用ip
+    stdin_open: true # docker容器是否开启交互模式
+    tty: true # 解释这句话的意思：docker容器是否开启交互模式
+    ports:
+      - "8001:8001"  # vue开发环境端口
+    volumes:
+      - ../frontend:/app  # 直接映射到项目文件夹

@@ -1,18 +1,31 @@
 <template>
   <div class="task-detail-page">
-    <h1>{{ taskID }}</h1>
+    <h1>洗车任务:{{ taskID }}</h1>
+
+    <h2>洗车效果展示(车号:{{ carID }}) </h2>
+
     <div class="carrage-buttons-container">
       <button v-for="detail in taskData.details" :key="detail['carrage-id']" @click="selectCarrage(detail)" class="carrage-button">
-        {{ detail['carrage-id'] }}
+        车厢{{ detail['carrage-id'] }}
       </button>
     </div>
-    <div class="image-display">
-      <img :src="currentImageA" alt="Image A" @click="showImageModal(currentImageA)" class="displayed-image" />
-      <img :src="currentImageB" alt="Image B" @click="showImageModal(currentImageB)" class="displayed-image" />
+
+    <div class="image-area">
+      <div class="image-block">
+        <div>洗前脏污指数:{{ scoreA }}</div>
+        <img :src="currentImageA" alt="Image A" @click="showImageModal(currentImageA)" class="displayed-image" />
+        <div>点击查看大图</div>
+      </div>
+      <div class="image-block">
+        <div>洗后脏污指数:{{ scoreB }}</div>
+        <img :src="currentImageB" alt="Image B" @click="showImageModal(currentImageB)" class="displayed-image" />
+        <div>点击查看大图</div>
+     </div>
     </div>
-    <div class="score-display">
+
+    <!-- <div class="score-display">
       <textarea :value="currentScore" rows="3" class="score-textarea" readonly></textarea>
-    </div>
+    </div> -->
 
     <!-- Image Modal -->
     <div v-if="showModal" class="modal" @click.self="closeImageModal"> <!-- .self ensures click on backdrop closes modal -->
@@ -29,6 +42,9 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 const taskID = ref(route.params.taskid);
 const taskData = ref({ details: [] });
+const carID = ref('');
+const scoreA = ref('');
+const scoreB = ref('');
 const currentImageA = ref('');
 const currentImageB = ref('');
 const currentScore = ref('');
@@ -37,12 +53,13 @@ const modalImageSrc = ref('');
 
 onMounted(async () => {
   try {
-    const response = await fetch(\`http://localhost:5000/\${taskID.value}\`);
+    const response = await fetch("http://182.18.6.217:5000/\${taskID.value}\", { method: 'GET' }");
     if (!response.ok) {
-      throw new Error(\`HTTP error! status: \${response.status}\`);
+      throw new Error("HTTP error! status: \${response.status}");
     }
     const data = await response.json();
     taskData.value = data;
+    carID.value = data['car-id']
     if (data.details && data.details.length > 0) {
       selectCarrage(data.details[0]);
     }
@@ -57,9 +74,10 @@ function selectCarrage(detail) {
   // Using a placeholder image if actual images are not found or path is incorrect.
   // The public/images directory should contain these images.
   // The path should be relative to the public directory.
-  currentImageA.value = detail.image && detail.image[0] ? \`/images/\${detail.image[0]}\` : '/images/placeholder.jpg';
-  currentImageB.value = detail.image && detail.image[1] ? \`/images/\${detail.image[1]}\` : '/images/placeholder.jpg';
-  currentScore.value = detail.score.join(', ');
+  currentImageA.value = detail.image && detail.image[0] ? `/images/${detail.image[0]}` : '/images/placeholder.jpg';
+  currentImageB.value = detail.image && detail.image[1] ? `/images/${detail.image[1]}` : '/images/placeholder.jpg';
+  scoreA.value = detail.score[0];
+  scoreB.value = detail.score[1];
 }
 
 function showImageModal(imageSrc) {
@@ -113,7 +131,14 @@ h1 {
   background-color: #0056b3;
 }
 
-.image-display {
+.image-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers children horizontally */
+  justify-content: center; /* Optional: if you want vertical centering too */
+}
+
+.image-area {
   display: flex;
   justify-content: space-around; /* Distributes images with space around them */
   align-items: center; /* Vertically align images if they have different heights */
